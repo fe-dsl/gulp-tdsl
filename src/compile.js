@@ -221,7 +221,7 @@ const compile = function (filePath, options = {}) {
     const testio = parseInputOutputFromComment(ast.comments);
     const combinedExportFunctions = combineExportFunctionsWithParams(formatedExportFunctions, testio);
 
-    parserTest.parseTestFromFunctions(combinedExportFunctions, filePath);
+    parserTest.parseTestFromFunctions(combinedExportFunctions, filePath, options);
 }
 
 module.exports = compile;

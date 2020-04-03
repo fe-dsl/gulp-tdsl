@@ -44,7 +44,7 @@ if (packageJsonDir) {
  * @param {*} filePath
  * @returns
  */
-const parseTestFromFunctions = function (combinedExportFunctions, filePath) {
+const parseTestFromFunctions = function (combinedExportFunctions, filePath, options = {}) {
     if (!tdslConfig) {
         console.error('can not find tdsl.config.js');
     }
