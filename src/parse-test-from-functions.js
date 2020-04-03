@@ -151,9 +151,9 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
             // 中间过程读取属性判断
             let moduleNameCall = `${functionItem.name}${callType}(${params})`;
 
-            // 如果函数调用使用callby
-            if (testItem.callType === 'callby' && paramsArr[0]) {
-                moduleNameCall = `${paramsArr[0]}(${functionItem.name}${callType}(${paramsArr.slice(1)}))`
+            // 如果函数调用被包裹
+            if (testItem.callBy) {
+                moduleNameCall = `${testItem.callBy}(${functionItem.name}${callType}(${paramsArr}))`
             }
 
             let hasProcess = processes && processes.length;

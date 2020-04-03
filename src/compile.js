@@ -135,10 +135,19 @@ function parseInputOutputFromComment (comments) {
             }
             
             for (let quot of matchArr) {
+                const nameReg = /^([\w|\d|\_|\.]+)\(/;
                 // 正则获取函数名
-                let name = quot.match(/^([\w|\d|\_|\.]+)\(/)[1];
+                let name = quot.match(nameReg)[1];
+
+                let restName = quot.replace(nameReg, '').match(nameReg);
+                let callBy = '';
+                if (restName && restName[1]) {
+                    callBy = name;
+                    name = restName[1];
+                }
+
                 // 去掉函数名
-                let rest = quot.replace(name, '');
+                let rest = quot.replace(name, '').replace(callBy, '');
                 
                 const splitSignal = /(\!?=?=>)|(\->)/g;
 
@@ -151,7 +160,7 @@ function parseInputOutputFromComment (comments) {
                 const assectArr = rest.match(/(\!?=?=>)/);
 
                 // 属性
-                const property = quotArr[0].replace(/\(.*?\)/, '');
+                const property = quotArr[0].replace(/\(.*?\)+/, '');
 
                 // 输入参数数组
                 const input = quotArr[0].replace(/\(|\)/g, '').replace(property, '');
@@ -177,10 +186,10 @@ function parseInputOutputFromComment (comments) {
                     property: property,
                     process: quotArr.slice(1, quotArr.length - 1),
                     callType: name.split('.')[1] || '',
+                    callBy,
                 };
 
                 name = name.indexOf('call') > -1 || name.indexOf('apply') > -1 ? name.split('.')[0] : name
-
 
                 testio[name] = testio[name] || [];
                 testio[name].push(parsedStruct);

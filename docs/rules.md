@@ -201,17 +201,17 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 8, 高阶异步判断 callby
+#### 8, 高阶异步判断
 
-**fn.callby(moduleName, ...params) -> (module.property) -> (returnValue)**
+**moduleName(fn(...params)) -> (module.property) -> (returnValue)**
 
-&emsp;有时模块函数可能是高阶函数，需要嵌套一次调用测试，例如: dispatch(A())，这时可能就需要需要用到callby。注意第一个参数传的是模块名，要传的参数放在第二个开始后面。
+&emsp;有时模块函数可能是高阶函数，需要嵌套一次调用测试，例如: dispatch(A())。注意第一个参数传的是模块名，要传的参数放在第二个开始后面。目前最多支持二阶函数。
 
 ```
 /**
  * 拉取接口数据，然后把接口数据dispatch到store上，然后判断store的数据是否符合预期
  *
- * getOverviewChart.call('dispatch', {}) -> (getState().apiData) ==> ({chart: {a:1}})
+ * dispatch(getOverviewChart({})) -> (getState().apiData) ==> ({chart: {a:1}})
  */
 export const getOverviewChart = (params = {}) => (dispatch, getState) => {
   // ...request操作，然后dispatch数据到store的apiData
