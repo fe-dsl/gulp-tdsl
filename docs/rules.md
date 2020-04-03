@@ -277,6 +277,7 @@ test("initData module", () => {
 #### 10, this绑定call、apply
 
 **fn.call(this, ...params) -> number1('module1:of:path') -> ... -> number2('module2:of:path') => (returnValue)**
+
 **fn.apply(this, [...params]) -> number1('module1:of:path') -> ... -> number2('module2:of:path') => (returnValue)**
 
 &emsp;&emsp;有时验证一个模块时，由于模块可能依赖了this的一些方法和属性，才能运行，此时我们就需要mock一个this，然后用call或apply进行绑定。推荐使用call，apply后面数组元素如果引用了路径不会被解析。前面的方法模块均支持和call或apply绑定。
@@ -299,7 +300,7 @@ export const initData = function (options = {}) {
 // 其中./data.js中包含
 
 export const mockThis = {
-  setData: {},
+  setData: () => {},
   xxx...
 }
 ```
