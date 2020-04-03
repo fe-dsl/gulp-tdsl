@@ -205,7 +205,7 @@ test("getOverviewChart module", done => {
 
 **moduleName(fn(...params)) -> (module.property) -> (returnValue)**
 
-&emsp;有时模块函数可能是高阶函数，需要嵌套一次调用测试，例如: dispatch(A())。注意第一个参数传的是模块名，要传的参数放在第二个开始后面。目前最多支持二阶函数。
+&emsp;有时模块函数可能是高阶函数，需要嵌套一次调用测试，例如: dispatch(A())。目前最多支持二阶函数。
 
 ```
 /**
