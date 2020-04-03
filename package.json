@@ -1,0 +1,20 @@
+{
+  "bin": {
+    "tdsl": "bin/tdsl"
+  },
+  "description": "unit test descriptiton script language",
+  "devDependencies": {
+    "@babel/generator": "^7.9.4",
+    "@babel/parser": "^7.9.4",
+    "@typescript-eslint/typescript-estree": "^2.26.0",
+    "fs-extra": "^9.0.0",
+    "lodash": "^4.17.15"
+  },
+  "license": "ISC",
+  "main": "index.js",
+  "name": "gulp-tdsl",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.6"
+}
