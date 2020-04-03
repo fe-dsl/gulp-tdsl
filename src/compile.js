@@ -112,7 +112,6 @@ function parseToFormatedFunctionObject (functionModule) {
     return formated;
 }
 
-
 /**
  * 解析输出分析后的函数模块的参数类型输入输出
  *
@@ -128,6 +127,7 @@ function parseInputOutputFromComment (comments) {
 
             // 根据判断符号进行前后匹配分割
             let matchReg = /([\w|\.]+)\((.*?)\)([\[|\]|\w|\.|\'|\"|\_|\-|\>|\(|\)]*)\s?(!?=?=>)\s?\((.*?)\)/g;
+            
             let matchArr = valueString.match(matchReg);
 
             if (!matchArr) {
@@ -155,7 +155,6 @@ function parseInputOutputFromComment (comments) {
 
                 // 输入参数数组
                 const input = quotArr[0].replace(/\(|\)/g, '').replace(property, '');
-
 
                 var paramsInput = [`${input}`];
                 if (input.indexOf(',') > -1) {

@@ -59,7 +59,60 @@ function prasePackJsonDir(initDir) {
     }
 }
 
+
+/**
+ * 根据符号返回断言方式
+ *
+ * @param {*} testIo
+ * @returns
+ */
+function parseAssetFromTestIo (testIo) {
+
+    switch (testIo.assetType) {
+        case '=>':
+            return 'toBe';
+        case '==>':
+            return 'toEqual';
+        case '!=>':
+            return 'not.toBe';
+        case '!==>':
+            return 'not.toEqual';
+    }
+}
+
+/**
+ * 判断函数是直接调用还是通过call或apply调用
+ *
+ * @param {*} testIo
+ * @returns
+ */
+function parseCallType (testIo = {}) {
+    if (['call', 'apply'].indexOf(testIo.callType) > -1) {
+        return `.${testIo.callType}`;
+    } else {
+        return '';
+    }
+}
+
+
+/**
+ * 根据代码中的相对路径，结合代码文件所在的路径和最终生成test文件的路径计算一个相对路径
+ *
+ * @param {*} currentReletivePath
+ * @param {*} srcPath
+ * @param {*} outputFilePath
+ * @returns
+ */
+function parseFromSrcAndTestPath (currentReletivePath, srcPath, outputFilePath) {
+    let relativePath = relativeDir(path.resolve(path.join(srcPath, '../', currentReletivePath)), path.resolve(outputFilePath));
+    return relativePath;
+}
+
+
 module.exports = {
 	relativeDir,
 	prasePackJsonDir,
+	parseAssetFromTestIo,
+	parseCallType,
+	parseFromSrcAndTestPath,
 }
