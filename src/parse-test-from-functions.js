@@ -64,6 +64,14 @@ const parseTestFromFunctions = function (combinedExportFunctions, filePath, opti
  */
 function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
+    const noScript = (combinedExportFunctions || []).every((item) => {
+        return !item.testio;
+    });
+
+    if (noScript) {
+        return false;
+    }
+
     let codeString = '';
     let registerVarPath = {}; // 数据路径是否已经注册
     // 已经通过文件路径读取过变量的值的记录
@@ -103,12 +111,13 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         codeString += config.use.beforeAllCode.replace('<rootDir>', rootRelativeDir);
     }
 
+    let asyncTests = '';
     // 分析每个导出需要测试的函数模块
     for (let functionItem of combinedExportFunctions) {
         let expectAssetion = '';
 
         // 需要提前执行一下函数
-        let beforeCode = '';
+        let beforeCode = 'jest.resetAllMocks();';
         let afterCode = '';
         let asyncDone = '';
 
@@ -188,7 +197,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
             } else if (hasProcess && !isTimesCall) {
                 // 有中间处理，但是没有调用次数判断，说明是异步处理
                 asyncDone = 'done';
-                expectAssetion += `
+                expectAssetion = `
                 ${moduleNameCall}.then((data) => {
                     expect(${processes}${property}).${assetType}(${testItem.output});
                     done();
@@ -196,6 +205,13 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     expect(${processes}${property}).${assetType}(${testItem.output});
                     done();
                 });`;
+                asyncTests = asyncTests + `
+                    test("${functionItem.name} module",(${asyncDone}) => {
+                        ${beforeCode}
+                        ${expectAssetion}
+                        ${afterCode}
+                    });
+                `;
             } else if (isTimesCall) {
                 // 如果有中间过程，且有次数判断，则说明是触发类用例
                 beforeCode = `
@@ -255,13 +271,14 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         }
 
         // 套入基本的test断言代码模板
-        codeString = codeString + `
+        codeString = codeString + (asyncTests ? asyncTests :`
             test("${functionItem.name} module",(${asyncDone}) => {
                 ${beforeCode}
                 ${expectAssetion}
                 ${afterCode}
             });
-        `;
+        `);
+        asyncTests = '';
 
         // 根据数据路径，头部注入常量声明语句
         for (let dataPath of dataPaths) {
