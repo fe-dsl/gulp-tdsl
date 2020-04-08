@@ -97,7 +97,6 @@ function _consoleHelp() {
     logger(`
         您可以使用下面命令:
             tdsl compile/c filePath: 编译源码文件
-        }
     `);
 }
 

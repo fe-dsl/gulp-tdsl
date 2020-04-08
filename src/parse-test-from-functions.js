@@ -117,7 +117,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         let expectAssetion = '';
 
         // 需要提前执行一下函数
-        let beforeCode = 'jest.resetAllMocks();';
+        let beforeCode = '';
         let afterCode = '';
         let asyncDone = '';
 
