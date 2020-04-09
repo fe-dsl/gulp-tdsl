@@ -197,6 +197,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
             } else if (hasProcess && !isTimesCall) {
                 // 有中间处理，但是没有调用次数判断，说明是异步处理
                 asyncDone = 'done';
+                beforeCode = 'jest.resetAllMocks();';
                 expectAssetion = `
                 ${moduleNameCall}.then((data) => {
                     expect(${processes}${property}).${assetType}(${testItem.output});

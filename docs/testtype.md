@@ -55,7 +55,26 @@ export const initData = function (options = {}) {
 
 - (4) UI类测试。调用render函数后查找节点，判断其个数、类名、属性等是否符合预期
 
+对于React技术栈UI测试，`npm i jest jest-babel @babel/preset-es2015 @babel/preset-env @babel/preset-react`，package.json可如下配置
+
 ```
+  "jest": {
+    "testRegex": "test/test.jsx?$",
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "transform": {
+      "^.+\\.js": "<rootDir>/node_modules/babel-jest"
+    },
+    "collectCoverage": true
+  }
+
+```
+.babelrc配置(babel7的配置)
+```
+{
+  "presets": ["@babel/preset-env", "@babel/react"]
+}
 ```
 
 (待完善)
