@@ -132,6 +132,9 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
             // 解析输入参数
             let paramsArr = testItem.input.map((param) => {
+                if (param.indexOf(paramsPathSplit) < 0 && param.indexOf(':.') > -1) {
+                    console.warn(`you may want to use ":of:" in ${param} ?`);
+                }
                 // 如果参数中有path:"../data"等相对路径则识别为路径
                 if (param.indexOf(paramsPathSplit) >= 0 && param.indexOf('{') < 0) {
                     return parseStructFromPath(param, registerVarPath, dataPaths, filePath, outputFilePath);
@@ -141,6 +144,9 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
             });
             const params = paramsArr.join(',');
 
+            if (testItem.output.indexOf(paramsPathSplit) < 0 && testItem.output.indexOf(':.') > -1) {
+                console.warn(`you may want to use ":of:" in ${testItem.output} ?`);
+            }
             // 解析输出断言变量
             if (testItem.output.indexOf(paramsPathSplit) >= 0 && testItem.output.indexOf('{') < 0) {
                 testItem.output = parseStructFromPath(testItem.output, registerVarPath, dataPaths, filePath, outputFilePath);
