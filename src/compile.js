@@ -164,18 +164,13 @@ function parseInputOutputFromComment (comments) {
 
                 // 输入参数数组
                 const input = quotArr[0].replace(/\(|\)/g, '').replace(property, '');
-
                 var paramsInput = [`${input}`];
                 if (input.indexOf(',') > -1) {
                     // 参数含有复杂结构
                     eval(`paramsInput = [${input}];`);
     
                     paramsInput = paramsInput.map((item) => {
-                        if (typeof(item) === 'object') {
-                            return JSON.stringify(item);
-                        } else {
-                            return item.toString();
-                        }
+                        return JSON.stringify(item);
                     });
                 }
 
