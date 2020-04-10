@@ -137,6 +137,19 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 }
                 // 如果参数中有path:"../data"等相对路径则识别为路径
                 if (param.indexOf(paramsPathSplit) >= 0 && param.indexOf('{') < 0) {
+
+                    const structParamReg = /(\d*)\.\.\./;
+                    // 如果参数中有...输入，则将路径中参数全部读进来传入
+                    if (structParamReg.test(param) && param.indexOf('...') <= 3 && param.indexOf('...') >= 0) {
+                        const tempParam = param.replace(/\d*\.\.\./g, '');
+                        const paramsStruct = parseStructFromPath(tempParam, registerVarPath, dataPaths, filePath, outputFilePath);
+                        const length = param.match(structParamReg) && param.match(structParamReg)[1] || functionItem.params.length;
+                        let paramsString = '';
+                        for(let i = 0; i < length; i++) {
+                            paramsString += `${paramsStruct}[${i}],`
+                        }
+                        return paramsString;
+                    }
                     return parseStructFromPath(param, registerVarPath, dataPaths, filePath, outputFilePath);
                 } else {
                     return param;

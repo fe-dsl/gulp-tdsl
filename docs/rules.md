@@ -141,7 +141,49 @@ test("B module", () => {
 
 ```
 
-#### 6, 属性判断
+#### 6, 析构常量路径 [Number]...[key]:of:
+
+**("[number]...data.dataKey1:of:path", ...params) => ('data.dataKey:of: path')**
+
+&emsp;&emsp;常量路径能够帮助我们引入文件数据，简化脚本长度，但是如果有时需要引入多个常量路径，脚本仍不够简洁，这时就可以使用析构常量路径。**注意此时常量路径输出必须是数组类型才生效**，其中数字表示使用前面多少个参数，方便不同个数参数复用，如果不设置，则自动为函数的最大参数个数计算。
+
+
+```
+/**
+ * name B
+ * A("2...params:of:./data.js", 3) => (6)
+ * A("...params1:of:./data.js") => (6)
+ */
+export function B (a: number, b: number,  c: number): number {
+    return a + b + c;
+}
+```
+
+&emsp;&emsp;其中data.js文件内容为：(支持export和module.exports导出)
+
+```
+// data.js
+module.exports = {
+    params: [1, 2]，
+    params1: [1, 2, 3]
+};
+```
+
+&emsp;&emsp;自动编译后，常量路径会被自动计算并填充到变量：
+
+```
+import { params, params1 } from '../data.js';
+test("B module", () => {
+    expect(B(params[0], params[1], 3)).toBe(6);
+    expect(B(params1[0], params1[1], params1[2])).toBe(6);
+});
+
+```
+
+
+
+
+#### 7, 属性判断
 
 **fn(...Params).property => (lengthValue)**
 
@@ -168,7 +210,7 @@ test("B module", () => {
 });
 ```
 
-#### 7，异步判断
+#### 8，异步判断
 
 **fn(...params) -> (module.property) ==> (returnValue)**
 
@@ -201,7 +243,7 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 8, 高阶异步判断
+#### 9, 高阶异步判断
 
 **moduleName(fn(...params)) -> (module.property) -> (returnValue)**
 
@@ -234,7 +276,7 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 9,触发调用次数判断
+#### 10,触发调用次数判断
 
 **fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
@@ -274,7 +316,7 @@ test("initData module", () => {
 });
 ```
 
-#### 10, this绑定call、apply
+#### 11, this绑定call、apply
 
 **fn.call(this, ...params) -> number1('module1:of:path') -> ... -> number2('module2:of:path') => (returnValue)**
 
