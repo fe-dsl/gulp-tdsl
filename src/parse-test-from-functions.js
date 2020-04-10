@@ -238,7 +238,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     ${moduleNameCall};
                 `;
                 afterCode = testItem.output ? `expect(${moduleNameCall}${property}).${assetType}(${testItem.output});\n` : '';
-
+                const registeredMockFn = {};
                 // 如果是事件模块
                 for (let process of processes) {
                     const times = process.match(/^(\d*)\(.+\)/)[1];
@@ -261,14 +261,14 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                         if (!registeredProcess[processName]) {
                             // 自动计算引入模块相对test文件的路径
                             const relativePath = parseFromSrcAndTestPath(processPath, filePath, outputFilePath);
-                            codeString += `
-                                import { ${processName} } from '${relativePath}';
-                                jest.mock('${relativePath}', () => {
-                                    return {
-                                        ${processName}: jest.fn(),
-                                    }
-                                });
-                            `;
+                            
+                            // 合并多个mock的调用
+                            if (registeredMockFn[relativePath]) {
+                                registeredMockFn[relativePath].push(processName);
+                            } else {
+                                registeredMockFn[relativePath] = [processName]
+                            }
+
                             registeredProcess[processName] = true;
                         }
                         expectAssetion += `
@@ -285,6 +285,21 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                             expect(${processName}).toBeCalledTimes(${times});
                         `;
                     }
+                }
+
+                // 评价函数mocks的import
+                for (let keyPath in registeredMockFn) {
+                    const mocks = registeredMockFn[keyPath].map((processName) => {
+                        return `${processName}: jest.fn(),`;
+                    });
+                    codeString = `
+                        import { ${registeredMockFn[keyPath].join(',')} } from '${keyPath}';
+                        jest.mock('${keyPath}', () => {
+                            return {
+                                ${mocks.join('\n')}
+                            }
+                        });
+                    ` + codeString;
                 }
             }
         }
