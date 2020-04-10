@@ -65,7 +65,7 @@ const parseTestFromFunctions = function (combinedExportFunctions, filePath, opti
 function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
     const noScript = (combinedExportFunctions || []).every((item) => {
-        return !item.testio;
+        return typeof(item.testio) == 'undefined';
     });
 
     if (noScript) {
@@ -112,6 +112,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     }
 
     let asyncTests = '';
+    const registeredMockFn = {};
     // 分析每个导出需要测试的函数模块
     for (let functionItem of combinedExportFunctions) {
         let expectAssetion = '';
@@ -126,7 +127,6 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         if (!functionItem.testio) {
             continue ;
         }
-
         // 循环查找每个函数模块
         for (let testItem of functionItem.testio) {
 
@@ -238,7 +238,6 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     ${moduleNameCall};
                 `;
                 afterCode = testItem.output ? `expect(${moduleNameCall}${property}).${assetType}(${testItem.output});\n` : '';
-                const registeredMockFn = {};
                 // 如果是事件模块
                 for (let process of processes) {
                     const times = process.match(/^(\d*)\(.+\)/)[1];
@@ -259,17 +258,17 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     if (processPath) {
                         // 如果模块名没注册过
                         if (!registeredProcess[processName]) {
-                            // 自动计算引入模块相对test文件的路径
-                            const relativePath = parseFromSrcAndTestPath(processPath, filePath, outputFilePath);
-                            
-                            // 合并多个mock的调用
-                            if (registeredMockFn[relativePath]) {
-                                registeredMockFn[relativePath].push(processName);
-                            } else {
-                                registeredMockFn[relativePath] = [processName]
-                            }
-
                             registeredProcess[processName] = true;
+                        }
+                        // 自动计算引入模块相对test文件的路径
+                        const relativePath = parseFromSrcAndTestPath(processPath, filePath, outputFilePath);
+                        // 合并多个mock的调用
+                        if (registeredMockFn[relativePath]) {
+                            if (registeredMockFn[relativePath].indexOf(processName) < 0) {
+                                registeredMockFn[relativePath].push(processName);
+                            }
+                        } else {
+                            registeredMockFn[relativePath] = [processName]
                         }
                         expectAssetion += `
                             expect(${processName}).toBeCalledTimes(${times});
@@ -285,21 +284,6 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                             expect(${processName}).toBeCalledTimes(${times});
                         `;
                     }
-                }
-
-                // 评价函数mocks的import
-                for (let keyPath in registeredMockFn) {
-                    const mocks = registeredMockFn[keyPath].map((processName) => {
-                        return `${processName}: jest.fn(),`;
-                    });
-                    codeString = `
-                        import { ${registeredMockFn[keyPath].join(',')} } from '${keyPath}';
-                        jest.mock('${keyPath}', () => {
-                            return {
-                                ${mocks.join('\n')}
-                            }
-                        });
-                    ` + codeString;
                 }
             }
         }
@@ -327,6 +311,21 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         }
     }
 
+    // 函数mocks的import
+    for (let keyPath in registeredMockFn) {
+        const mocks = registeredMockFn[keyPath].map((processName) => {
+            return `${processName}: jest.fn(),`;
+        });
+        codeString = `
+            import { ${registeredMockFn[keyPath].join(',')} } from '${keyPath}';
+            jest.mock('${keyPath}', () => {
+                return {
+                    ${mocks.join('\n')}
+                }
+            });
+        ` + codeString;
+    }
+
     // 分析所有的路径数据导入导出
     for (let pathKey in readedData) {
         if (readedData[pathKey].length > 0){
@@ -352,6 +351,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     } catch (e) {
         console.log('语法解析错误' + e);
         console.log(codeString);
+        fs.outputFileSync(outputFilePath, codeString);
     }
 }
 
