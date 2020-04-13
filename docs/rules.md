@@ -280,7 +280,7 @@ test("getOverviewChart module", done => {
 
 **fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
-&emsp;&emsp;常常我们会去测试一个事件触发时是否调用了一些数据业务逻辑，这种情况可以使用调用次数的判断。例如，fn调用时调用module1次数为number1，调用module2次数为number1，module1来自path路径的文件，module1和module2均会被自动mock，然后返回断言值为returnValue。中间的调用判断支持多项。注意这里 number1('module1:of:path') -> (module) 不能和异步判断混用。如果需要多次判断，请分多条规则书写。
+&emsp;&emsp;常常我们会去测试一个事件触发时是否调用了一些数据业务逻辑，这种情况可以使用调用次数的判断。例如，fn调用时调用module1次数为number1，调用module2次数为number1，module1来自path路径的文件，module1和module2均会被自动mock，然后返回断言值为returnValue。中间的调用判断支持多项，并支持自动合并。注意这里 number1('module1:of:path') -> (module) 不能和异步判断混用。如果需要多次判断，请分多条规则书写。
 
 ```
 /*
@@ -296,15 +296,10 @@ export const initData = function (options = {}) {
 &emsp;&emsp;这里的模块路径均会被自动重新计算和自动mock，编译后输出：
 
 ```
-import { onChangeChartDate } from '../action';
+import { onChangeChartDate, getAdvertiserListInfo } from '../action';
 jest.mock('../action', () => {
   return {
     onChangeChartDate: jest.fn(),
-  };
-});
-import { getAdvertiserListInfo } from '../action';
-jest.mock('../action', () => {
-  return {
     getAdvertiserListInfo: jest.fn(),
   };
 });
