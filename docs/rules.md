@@ -276,7 +276,7 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 10,触发调用次数判断
+#### 10, 触发调用次数判断
 
 **fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
