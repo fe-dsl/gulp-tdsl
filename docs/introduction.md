@@ -1,4 +1,5 @@
-&emsp;&emsp;TDSL(Test Description Script Language), 测试描述脚本语言，是一套高效简洁描述测试代码的规范脚本语法。
+
+**TDSL** (Test Domain Specific Language), 测试领域专用语言，是一套高效简洁描述测试代码的规范脚本语法。
 
 - **1.1、为什么要使用TDSL**
 

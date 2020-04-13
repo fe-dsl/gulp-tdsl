@@ -277,7 +277,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     } else {
                         // 如果模块名没注册过
                         if (!registeredProcess[processName]) {
-                            codeString += `global.${processName} = jest.fn();`;
+                            codeString += `${processName} = jest.fn();`;
                             registeredProcess[processName] = true;
                         }
                         expectAssetion += `
