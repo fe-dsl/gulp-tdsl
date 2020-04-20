@@ -309,10 +309,10 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         }
 
         // 模块是否使用async写法
-        const asyncSignal = (config.async === 'async' || config.async === 'promise') ? 'async' : '';
+        const asyncSignal = (config.async === 'async' || config.async === 'promise') ? 'async ' : '';
         // 套入基本的test断言代码模板
         codeString = codeString + (asyncTests ? asyncTests :`
-            test("${asyncSignal} ${functionItem.name} module", ${asyncSignal} (${asyncDone}) => {
+            test("${asyncSignal}${functionItem.name} module", ${asyncSignal}(${asyncDone}) => {
                 ${beforeCode}
                 ${expectAssetion}
                 ${afterCode}
