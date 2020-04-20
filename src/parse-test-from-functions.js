@@ -67,22 +67,23 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     const noScript = (combinedExportFunctions || []).every((item) => {
         return typeof(item.testio) == 'undefined';
     });
-
+    // 没有注释脚本则结束
     if (noScript) {
         return false;
     }
 
-    let codeString = '';
+    let codeString = '';  // 用例代码字符串
+    let asyncTests = '';   // 异步写法的用例代码
+
     let registerVarPath = {}; // 数据路径是否已经注册
-    // 已经通过文件路径读取过变量的值的记录
-    const readedData = {};
-    // 注册过的中间过程记录
-    let registeredProcess = {};
+    const readedData = {}; // 已经通过文件路径读取过变量的值的记录
+    let registeredProcess = {}; // 注册过的中间过程记录
+    const registeredMockFn = {};  // 已注册需要mock的方法
 
     // 文件名
     const fileName = path.basename(filePath).split('.')[0] || '';
 
-    // 最终输出test文件的目录
+    // 最终输出test文件的目录，当前目录的 ./__test__/ 下
     const outputDir = path.dirname(path.join('./__test__/', filePath.replace(packageJsonDir, '')));
 
     // 最终输出test文件的文件路径
@@ -94,10 +95,10 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     // 项目根目录相对test输出文件的相对路径
     const rootRelativeDir = relativeDir(packageJsonDir, path.resolve(filePath)) + '../';
 
+    // 导入需要测试的函数模块记录名称，最终组装到import或require中
     const moduleNames = (combinedExportFunctions || []).map((item) => {
         return item.name;
     });
-
 
     // 分析解析import的模块变量名
     if (config.ui == 'miniprogram') {
@@ -111,9 +112,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         codeString += config.use.beforeAllCode.replace('<rootDir>', rootRelativeDir);
     }
 
-    let asyncTests = '';   // 异步写法用例代码
-    const registeredMockFn = {};
-    // 分析每个导出需要测试的函数模块
+    // 循环分析每个导出模块需要测试的函数
     for (let functionItem of combinedExportFunctions) {
         let expectAssetion = '';
 
@@ -127,7 +126,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         if (!functionItem.testio) {
             continue ;
         }
-        // 循环查找每个函数模块
+        // 循环查找每个模块的输入输出语句
         for (let testItem of functionItem.testio) {
 
             // 解析输入参数
@@ -155,6 +154,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     return param;
                 }
             });
+
             const params = paramsArr.join(',');
 
             if (testItem.output.indexOf(paramsPathSplit) < 0 && testItem.output.indexOf(':.') > -1) {
@@ -183,7 +183,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
             if (testItem.callBy) {
                 moduleNameCall = `${testItem.callBy}(${functionItem.name}${callType}(${paramsArr}))`
             }
-
+            // IO之间有处理过程，包括异步处理过程和模块调用判断
             let hasProcess = processes && processes.length;
             let isTimesCall = hasProcess && processes.some((process) => {
                 const times = process.match(/^(\d*)\(.+\)/)[1];
@@ -260,8 +260,8 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 afterCode = testItem.output ? `expect((${moduleNameCall})${property}).${assetType}(${testItem.output});\n` : '';
                 // 如果是事件模块
                 for (let process of processes) {
-                    const times = process.match(/^(\d*)\(.+\)/)[1];
-                    let processName = process.match(/^\d*\((.+)\)/)[1];
+                    const times = process.match(/^(\d*)\(.+\)/)[1];  // 调用的次数
+                    let processName = process.match(/^\d*\((.+)\)/)[1];  // 调用的模块名
                     let processPath = '';
 
                     if (!/\d+/.test(times + '')) {
@@ -274,7 +274,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                         processPath = processNameArr[1];
                     }
 
-                    // 还有模块mock路径的情况
+                    // 还有函数模块mock路径的情况
                     if (processPath) {
                         // 如果模块名没注册过
                         if (!registeredProcess[processName]) {
@@ -288,12 +288,11 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                                 registeredMockFn[relativePath].push(processName);
                             }
                         } else {
-                            registeredMockFn[relativePath] = [processName]
+                            registeredMockFn[relativePath] = [processName];
                         }
                         expectAssetion += `
                             expect(${processName}).toBeCalledTimes(${times});
                         `;
-
                     } else {
                         // 如果模块名没注册过
                         if (!registeredProcess[processName]) {
