@@ -1,9 +1,9 @@
 
 - **TDSL基本语法**
 
-#### 1、相等 =>
+#### 1、断言比较。相等 =>、深度相等 ==>、不相等 !=>、深度不相等 !==>
 
-**fn(...Params) => (returnValue)**。调用函数方法，返回预期的校验值，如果没有returnValue，则没有断言判断输出，例如：
+**1.1、fn(...Params) => (returnValue)**。调用函数方法，返回预期的校验值，如果没有returnValue，则没有断言判断输出，例如：
 
 ```
 /* name function B
@@ -24,9 +24,7 @@ test("B module", () => {
 });
 ```
 
-#### 2、深度相等 ==>
-
-**fn(...Params) ==> (returnValue)**。如果判断输出是否深度相等，则可使用 ==>，例如：
+**1.2、fn(...Params) ==> (returnValue)**。如果判断输出是否深度相等，则可使用 ==>，例如：
 
 ```
 /* name B
@@ -49,9 +47,7 @@ test("B module", () => {
 
 ```
 
-#### 3、不相等 !=>
-
-**fn(...Params) !=> (returnValue)**。例如
+**1.3、fn(...Params) !=> (returnValue)**。例如
 
 ```
 /* name B
@@ -72,9 +68,7 @@ test("B module", () => {
 
 ```
 
-#### 4、深度不相等
-
-**fn(...Params) !==> (returnValue)**。例如
+**1.4、fn(...Params) !==> (returnValue)**。例如
 
 ```
 /* name B
@@ -95,7 +89,8 @@ test("B module", () => {
 
 ```
 
-#### 5，常量路径 :of:
+#### 2，常量路径 :of:
+
 **("data.dataKey1:of:path", "data.dataKey:of:path", ...params) => ('data.dataKey:of: path')**
 
 &emsp;&emsp;如果我们要处理的样本数据太大，需要从外部一个数据文件中导出使用，就可以使用:of:。使用:of:分割，:of:前为读取mock数据的属性key，如果没有key则表示无输入，后面为相对路径，**此时参数输入必须为字符串**，相对路径最终会根据生成用例文件的路径对比，计算出一个新的相对路径，而且相同重复的路径最终会自动合并到一个import语句。
@@ -141,7 +136,7 @@ test("B module", () => {
 
 ```
 
-#### 6, 析构常量路径 [Number]...[key]:of:
+#### 3, 析构常量路径 [Number]...[key]:of:
 
 **("[number]...data.dataKey1:of:path", ...params) => ('data.dataKey:of: path')**
 
@@ -181,9 +176,7 @@ test("B module", () => {
 ```
 
 
-
-
-#### 7, 属性判断
+#### 4, 属性判断
 
 **fn(...Params).property => (lengthValue)**
 
@@ -210,7 +203,7 @@ test("B module", () => {
 });
 ```
 
-#### 8，异步判断
+#### 5，异步判断
 
 **fn(...params) -> (module.property) ==> (returnValue)**
 
@@ -256,7 +249,7 @@ test("async getOverviewChart module", async done => {
 })
 ```
 
-#### 9, 高阶异步判断
+#### 6, 二阶异步判断
 
 **moduleName(fn(...params)) -> (module.property) -> (returnValue)**
 
@@ -289,7 +282,7 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 10, 触发调用次数判断
+#### 7, 触发调用次数判断
 
 **fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
@@ -324,7 +317,7 @@ test("initData module", () => {
 });
 ```
 
-#### 11, this绑定call、apply
+#### 8, this绑定call、apply
 
 **fn.call(this, ...params) -> number1('module1:of:path') -> ... -> number2('module2:of:path') => (returnValue)**
 
