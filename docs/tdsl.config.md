@@ -10,6 +10,7 @@
 
 | module字段名 | 说明 | 默认值 |
 |-|-|-|
+| async | 异步测试类型 |默认null，如果为async，则用例代码为async输出；如果为promise，则是promise类型。async也可以测试promise的源码|
 | test | 必需，文件路径统配符字符串 |null|
 | use | 使用规则：beforeAllCode、afterAllCode |{}|
 | ui | UI测试类型，如果设置了，说明模块为ui测试 |null，需要设置为vue、react、miniprogram来标识几种不同ui|
@@ -22,6 +23,7 @@ module.exports = {
     module: [{
         test: "src/.*/data-adapter.js",
     }, {
+        async: 'async',
         test: "src/.*/action.js",
         use: {
             // 会出现在测试文件头部
@@ -34,6 +36,7 @@ module.exports = {
             afterAllCode: '',
         }
     }, {
+        async: 'promise',
         test: "src/.*/methods.js",
         use: {
             beforeAllCode: `

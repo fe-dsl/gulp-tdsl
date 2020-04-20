@@ -243,6 +243,19 @@ test("getOverviewChart module", done => {
 })
 ```
 
+&emsp;&emsp;根据tdsl.config.js的async配置也可以编译为如下输出，适用于async测试或promise测试，详细见配置文档：
+
+```
+test("async getOverviewChart module", async done => {
+    await getOverviewChart({});
+    expect(getState().apiData).toEqual({
+      chart: {
+        a: 1
+      }
+    });
+})
+```
+
 #### 9, 高阶异步判断
 
 **moduleName(fn(...params)) -> (module.property) -> (returnValue)**

@@ -111,7 +111,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         codeString += config.use.beforeAllCode.replace('<rootDir>', rootRelativeDir);
     }
 
-    let asyncTests = '';
+    let asyncTests = '';   // 异步写法用例代码
     const registeredMockFn = {};
     // 分析每个导出需要测试的函数模块
     for (let functionItem of combinedExportFunctions) {
@@ -209,19 +209,36 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 //     \n`;
                 // }
             } else if (!hasProcess) {
-                // 没有中间处理过程，如果是io测试模块
-                if (testItem.output) {
-                    expectAssetion += `expect(${moduleNameCall}${property}).${assetType}(${testItem.output});\n`;
+                // 没有中间处理过程，如果是io测试模块，支持async异步写法
+                if (config.async == 'async') {
+                    moduleNameCall = `await ${moduleNameCall}`;
                 }
-            } else if (hasProcess && !isTimesCall) {
-                // 有中间处理，但是没有调用次数判断，说明是异步处理
+                if (testItem.output) {
+                    expectAssetion += `expect((${moduleNameCall})${property}).${assetType}(${testItem.output});\n`;
+                }
+            } else if (hasProcess && !isTimesCall && config.async == 'async') {
+                // 有中间处理，但是没有调用次数判断，说明是异步处理，并且声明了是async异步
+                asyncDone = 'done';
+                expectAssetion = `
+                await ${moduleNameCall};
+                expect((${processes})${property}).${assetType}(${testItem.output});
+                done();`;
+                asyncTests = asyncTests + `
+                    test("async ${functionItem.name} module",async (${asyncDone}) => {
+                        ${beforeCode}
+                        ${expectAssetion}
+                        ${afterCode}
+                    });
+                `;
+            } else if (hasProcess && !isTimesCall && config.async == 'promise') {
+                // 有中间处理，但是没有调用次数判断，说明是异步处理，并且声明了是promise异步
                 asyncDone = 'done';
                 expectAssetion = `
                 ${moduleNameCall}.then((data) => {
-                    expect(${processes}${property}).${assetType}(${testItem.output});
+                    expect((${processes})${property}).${assetType}(${testItem.output});
                     done();
                 }, (data) => {
-                    expect(${processes}${property}).${assetType}(${testItem.output});
+                    expect((${processes})${property}).${assetType}(${testItem.output});
                     done();
                 });`;
                 asyncTests = asyncTests + `
@@ -233,11 +250,14 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 `;
             } else if (isTimesCall) {
                 // 如果有中间过程，且有次数判断，则说明是触发类用例
+                if (config.async == 'async') {
+                    moduleNameCall = `await ${moduleNameCall}`;
+                }
                 beforeCode = `
                     jest.resetAllMocks();
                     ${moduleNameCall};
                 `;
-                afterCode = testItem.output ? `expect(${moduleNameCall}${property}).${assetType}(${testItem.output});\n` : '';
+                afterCode = testItem.output ? `expect((${moduleNameCall})${property}).${assetType}(${testItem.output});\n` : '';
                 // 如果是事件模块
                 for (let process of processes) {
                     const times = process.match(/^(\d*)\(.+\)/)[1];
@@ -288,9 +308,11 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
             }
         }
 
+        // 模块是否使用async写法
+        const asyncSignal = (config.async === 'async' || config.async === 'promise') ? 'async' : '';
         // 套入基本的test断言代码模板
         codeString = codeString + (asyncTests ? asyncTests :`
-            test("${functionItem.name} module",(${asyncDone}) => {
+            test("${asyncSignal} ${functionItem.name} module", ${asyncSignal} (${asyncDone}) => {
                 ${beforeCode}
                 ${expectAssetion}
                 ${afterCode}
@@ -326,7 +348,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         ` + codeString;
     }
 
-    // 分析所有的路径数据导入导出
+    // 分析所有的路径数据导入导出import
     for (let pathKey in readedData) {
         if (readedData[pathKey].length > 0){
             codeString =  `import { ${readedData[pathKey].join(',')} } from "${pathKey}";\n`+ codeString;
@@ -338,6 +360,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         codeString += config.use.afterAllCode.replace('<rootDir>', rootRelativeDir);
     }
 
+    // 写用例代码到文件中
     try {
         const ast = parser.parse(codeString, {
             sourceType: 'module',

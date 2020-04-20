@@ -1,7 +1,9 @@
 
 module.exports = {
     module: [{
+        async: '',
         test: "*",
-        use: {}
+        use: {},
+        ui: ''
     }]
 }
