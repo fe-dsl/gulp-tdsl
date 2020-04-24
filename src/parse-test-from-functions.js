@@ -122,6 +122,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         let asyncDone = '';
 
         let dataPaths = [];
+        const isAsync = functionItem.async || config.async == 'async';
         // 如果没有testio，说明没有解析到匹配的函数模块，则跳过
         if (!functionItem.testio) {
             continue ;
@@ -210,13 +211,13 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 // }
             } else if (!hasProcess) {
                 // 没有中间处理过程，如果是io测试模块，支持async异步写法
-                if (config.async == 'async') {
+                if (isAsync) {
                     moduleNameCall = `await ${moduleNameCall}`;
                 }
                 if (testItem.output) {
                     expectAssetion += `expect((${moduleNameCall})${property}).${assetType}(${testItem.output});\n`;
                 }
-            } else if (hasProcess && !isTimesCall && config.async == 'async') {
+            } else if (hasProcess && !isTimesCall && isAsync) {
                 // 有中间处理，但是没有调用次数判断，说明是异步处理，并且声明了是async异步
                 asyncDone = 'done';
                 expectAssetion = `
@@ -250,7 +251,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 `;
             } else if (isTimesCall) {
                 // 如果有中间过程，且有次数判断，则说明是触发类用例
-                if (config.async == 'async') {
+                if (isAsync) {
                     moduleNameCall = `await ${moduleNameCall}`;
                 }
                 beforeCode = `
@@ -308,7 +309,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         }
 
         // 模块是否使用async写法
-        const asyncSignal = (config.async === 'async' || config.async === 'promise') ? 'async ' : '';
+        const asyncSignal = (isAsync || config.async === 'promise') ? 'async ' : '';
         // 套入基本的test断言代码模板
         codeString = codeString + (asyncTests ? asyncTests :`
             test("${asyncSignal}${functionItem.name} module", ${asyncSignal}(${asyncDone}) => {

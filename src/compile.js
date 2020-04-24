@@ -108,6 +108,7 @@ function parseToFormatedFunctionObject (functionModule) {
         };
     }
     formated['return'] = retrunValue;
+    formated['async'] = functionModule.async;
 
     return formated;
 }
