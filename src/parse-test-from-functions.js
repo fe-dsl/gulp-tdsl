@@ -354,14 +354,21 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         const mocks = (registeredMockFn && registeredMockFn[keyPath] || []).map((processName) => {
             return `${processName}: jest.fn(),`;
         });
+
         codeString = `
             import { ${registeredFn[keyPath].join(',')} } from '${keyPath}';
-            jest.mock('${keyPath}', () => {
-                return {
-                    ${mocks.join('\n')}
-                }
-            });
         ` + codeString;
+
+        // 如果mock列表有路径，则注入mock代码
+        if (mocks.length > 0) {
+            codeString = `
+                jest.mock('${keyPath}', () => {
+                    return {
+                        ${mocks.join('\n')}
+                    }
+                });
+            ` + codeString;
+        }
     }
 
     // 分析所有的路径数据导入导出import
