@@ -15,12 +15,13 @@ const {
 	parseAssetFromTestIo,
 	parseCallType,
     parseFromSrcAndTestPath,
+    inSplitSignal,
+    splitSignalArrayFromPath,
 } = require('./utils');
 
 const paramsPathSplit = ':of:';
 
 const currentPath = process.cwd();
-
 const packageJsonDir = prasePackJsonDir(currentPath);
 
 // 按照执行目录向外寻找tdsl.config.js文件的配置
@@ -132,11 +133,11 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
             // 解析输入参数
             let paramsArr = testItem.input.map((param) => {
-                if (param.indexOf(paramsPathSplit) < 0 && param.indexOf(':.') > -1) {
+                if (!inSplitSignal(param) && param.indexOf(':.') > -1) {
                     console.warn(`you may want to use ":of:" in ${param} ?`);
                 }
                 // 如果参数中有path:"../data"等相对路径则识别为路径
-                if (param.indexOf(paramsPathSplit) >= 0 && param.indexOf('{') < 0) {
+                if (inSplitSignal(param) && param.indexOf('{') < 0) {
 
                     const structParamReg = /(\d*)\.\.\./;
                     // 如果参数中有...输入，则将路径中参数全部读进来传入
@@ -158,11 +159,11 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
             const params = paramsArr.join(',');
 
-            if (testItem.output.indexOf(paramsPathSplit) < 0 && testItem.output.indexOf(':.') > -1) {
+            if (!inSplitSignal(testItem.output) && testItem.output.indexOf(':.') > -1) {
                 console.warn(`you may want to use ":of:" in ${testItem.output} ?`);
             }
             // 解析输出断言变量
-            if (testItem.output.indexOf(paramsPathSplit) >= 0 && testItem.output.indexOf('{') < 0) {
+            if (inSplitSignal(testItem.output) && testItem.output.indexOf('{') < 0) {
                 testItem.output = parseStructFromPath(testItem.output, registerVarPath, dataPaths, filePath, outputFilePath);
             }
 
@@ -269,8 +270,8 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                         continue;
                     }
 
-                    if (processName.indexOf(paramsPathSplit) > -1) {
-                        const processNameArr = processName.replace(/\'|\"/g, '').split(paramsPathSplit);
+                    if (!inSplitSignal(processName)) {
+                        const processNameArr = splitSignalArrayFromPath(processName.replace(/\'|\"/g, ''));
                         processName = processNameArr[0];
                         processPath = processNameArr[1];
                     }
@@ -392,7 +393,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
  */
 function parseStructFromPath (testIoItem, registerVarPath, dataPaths, srcPath, outputFilePath) {
 
-    const splitValue = testIoItem.replace(/\'|\"/g, '').split(paramsPathSplit);
+    const splitValue = splitSignalArrayFromPath(testIoItem.replace(/\'|\"/g, ''));
     let dataPath = splitValue[1].indexOf('.js') >= 0 ? splitValue[1] : `${splitValue[1]}.js`;
 
     let relativeDataPath = parseFromSrcAndTestPath(dataPath, srcPath, outputFilePath);

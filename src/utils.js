@@ -1,6 +1,7 @@
 
 const fs = require("fs-extra");
 const path = require("path");
+const allParamsPathSplite = [':of:', ':mockof:'];
 
 /**
  * 根据两个路径分析两者的相对路径
@@ -107,10 +108,36 @@ function parseFromSrcAndTestPath (currentReletivePath, srcPath, outputFilePath) 
     return relativePath;
 }
 
+/**
+ * 路径中是否含有:of:或者:mockof:
+ *
+ * @param {string} [pathParam='']
+ */
+function inSplitSignal(pathParam = '') {
+    return allParamsPathSplite.some((splitString) => {
+        return pathParam.indexOf(splitString) > -1;
+    });
+};
+
+/**
+ * 匹配分割符号进行分割
+ *
+ * @param {string} [pathParam='']
+ * @returns
+ */
+function splitSignalArrayFromPath(pathParam = '') {
+    const splitStr = allParamsPathSplite.find((splitString) => {
+        return pathParam.indexOf(splitString) > -1;
+    });
+    return splitStr && pathParam.split(splitStr) || pathParam;
+}
+
 module.exports = {
 	relativeDir,
 	prasePackJsonDir,
 	parseAssetFromTestIo,
 	parseCallType,
-	parseFromSrcAndTestPath,
+    parseFromSrcAndTestPath,
+    inSplitSignal,
+    splitSignalArrayFromPath,
 }
