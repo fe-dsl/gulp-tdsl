@@ -113,8 +113,8 @@ function parseFromSrcAndTestPath (currentReletivePath, srcPath, outputFilePath) 
  *
  * @param {string} [pathParam='']
  */
-function inSplitSignal(pathParam = '') {
-    return allParamsPathSplite.some((splitString) => {
+function inSplitSignalArray(pathParam = '') {
+    return allParamsPathSplite.find((splitString) => {
         return pathParam.indexOf(splitString) > -1;
     });
 };
@@ -138,6 +138,6 @@ module.exports = {
 	parseAssetFromTestIo,
 	parseCallType,
     parseFromSrcAndTestPath,
-    inSplitSignal,
+    inSplitSignalArray,
     splitSignalArrayFromPath,
 }

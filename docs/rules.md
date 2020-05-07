@@ -299,6 +299,32 @@ export const initData = function (options = {}) {
 }
 
 ```
+&emsp;&emsp;这里的模块路径均会被自动重新计算，编译后输出：
+
+```
+import { onChangeChartDate, getAdvertiserListInfo } from '../action';
+test("initData module", () => {
+  jest.resetAllMocks();
+  initData();
+  expect(onChangeChartDate).toBeCalledTimes(1);
+  expect(getAdvertiserListInfo).toBeCalledTimes(1);
+});
+```
+
+&emsp;&emsp;如果需要对引入的方法进行mock，则可使用: **fn(...params) -> number1('module1:mockof:path') -> ... -> number2('module2') => (returnValue)**
+
+```
+/*
+ * initData({}) -> 1(onChangeChartDate:mockof:../action) -> 1(getAdvertiserListInfo:mockof:../action) => ()
+ * 执行initData时，分别执行了1次onChangeChartDate和1次getAdvertiserListInfo，其中两个函数都来自../action模块
+ */
+export const initData = function (options = {}) {
+    onChangeChartDate(time);
+    getAdvertiserListInfo({page: 1});
+}
+
+```
+
 &emsp;&emsp;这里的模块路径均会被自动重新计算和自动mock，编译后输出：
 
 ```

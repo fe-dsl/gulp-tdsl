@@ -15,13 +15,14 @@ const {
 	parseAssetFromTestIo,
 	parseCallType,
     parseFromSrcAndTestPath,
-    inSplitSignal,
+    inSplitSignalArray,
     splitSignalArrayFromPath,
 } = require('./utils');
 
 const paramsPathSplit = ':of:';
 
 const currentPath = process.cwd();
+
 const packageJsonDir = prasePackJsonDir(currentPath);
 
 // 按照执行目录向外寻找tdsl.config.js文件的配置
@@ -79,7 +80,8 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     let registerVarPath = {}; // 数据路径是否已经注册
     const readedData = {}; // 已经通过文件路径读取过变量的值的记录
     let registeredProcess = {}; // 注册过的中间过程记录
-    const registeredMockFn = {};  // 已注册需要mock的方法
+    const registeredFn = {};  // 已注册需要mock的方法
+    const registeredMockFn = {};  // 已注册所有的方法
 
     // 文件名
     const fileName = path.basename(filePath).split('.')[0] || '';
@@ -133,11 +135,11 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
             // 解析输入参数
             let paramsArr = testItem.input.map((param) => {
-                if (!inSplitSignal(param) && param.indexOf(':.') > -1) {
+                if (!inSplitSignalArray(param) && param.indexOf(':.') > -1) {
                     console.warn(`you may want to use ":of:" in ${param} ?`);
                 }
                 // 如果参数中有path:"../data"等相对路径则识别为路径
-                if (inSplitSignal(param) && param.indexOf('{') < 0) {
+                if (inSplitSignalArray(param) && param.indexOf('{') < 0) {
 
                     const structParamReg = /(\d*)\.\.\./;
                     // 如果参数中有...输入，则将路径中参数全部读进来传入
@@ -159,11 +161,11 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
 
             const params = paramsArr.join(',');
 
-            if (!inSplitSignal(testItem.output) && testItem.output.indexOf(':.') > -1) {
+            if (!inSplitSignalArray(testItem.output) && testItem.output.indexOf(':.') > -1) {
                 console.warn(`you may want to use ":of:" in ${testItem.output} ?`);
             }
             // 解析输出断言变量
-            if (inSplitSignal(testItem.output) && testItem.output.indexOf('{') < 0) {
+            if (inSplitSignalArray(testItem.output) && testItem.output.indexOf('{') < 0) {
                 testItem.output = parseStructFromPath(testItem.output, registerVarPath, dataPaths, filePath, outputFilePath);
             }
 
@@ -270,7 +272,8 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                         continue;
                     }
 
-                    if (!inSplitSignal(processName)) {
+                    const matchedSplitSingal = inSplitSignalArray(processName);
+                    if (matchedSplitSingal) {
                         const processNameArr = splitSignalArrayFromPath(processName.replace(/\'|\"/g, ''));
                         processName = processNameArr[0];
                         processPath = processNameArr[1];
@@ -284,13 +287,23 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                         }
                         // 自动计算引入模块相对test文件的路径
                         const relativePath = parseFromSrcAndTestPath(processPath, filePath, outputFilePath);
-                        // 合并多个mock的调用
-                        if (registeredMockFn[relativePath]) {
-                            if (registeredMockFn[relativePath].indexOf(processName) < 0) {
-                                registeredMockFn[relativePath].push(processName);
+                        // 如果是需要mock的，则合并多个mock的调用
+                        if (registeredFn[relativePath]) {
+                            if (registeredFn[relativePath].indexOf(processName) < 0) {
+                                registeredFn[relativePath].push(processName);
                             }
                         } else {
-                            registeredMockFn[relativePath] = [processName];
+                            registeredFn[relativePath] = [processName];
+                        }
+
+                        if (matchedSplitSingal === ':mockof:') {
+                            if (registeredMockFn[relativePath]) {
+                                if (registeredMockFn[relativePath].indexOf(processName) < 0) {
+                                    registeredMockFn[relativePath].push(processName);
+                                }
+                            } else {
+                                registeredMockFn[relativePath] = [processName];
+                            }
                         }
                         expectAssetion += `
                             expect(${processName}).toBeCalledTimes(${times});
@@ -298,7 +311,9 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     } else {
                         // 如果模块名没注册过
                         if (!registeredProcess[processName]) {
-                            codeString += `${processName} = jest.fn();`;
+                            if (matchedSplitSingal == ':mockof:') {
+                                codeString += `${processName} = jest.fn();`;
+                            }
                             registeredProcess[processName] = true;
                         }
                         expectAssetion += `
@@ -335,12 +350,12 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     }
 
     // 函数mocks的import
-    for (let keyPath in registeredMockFn) {
-        const mocks = registeredMockFn[keyPath].map((processName) => {
+    for (let keyPath in registeredFn) {
+        const mocks = (registeredMockFn && registeredMockFn[keyPath] || []).map((processName) => {
             return `${processName}: jest.fn(),`;
         });
         codeString = `
-            import { ${registeredMockFn[keyPath].join(',')} } from '${keyPath}';
+            import { ${registeredFn[keyPath].join(',')} } from '${keyPath}';
             jest.mock('${keyPath}', () => {
                 return {
                     ${mocks.join('\n')}
