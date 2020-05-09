@@ -88,6 +88,30 @@ test("B module", () => {
 });
 
 ```
+&emsp;&emsp;**如果需要换行**，把块注释换行前面的 \* 去掉即可，另外遵循不要在过程内部换行
+
+```
+/**
+ * pullToRefresh.call('mockThis:of:../data/data.js') -> 1(wx.showToast) -> 
+    1(setTimeout:mockof:../../../common/utils) => ()
+ */
+```
+
+&emsp;&emsp;不支持：
+
+```
+/**
+ * pullToRefresh.call('mockThis:of:../data/data.js') -> 
+ *  1(setTimeout:mockof:../../../common/utils) => ()
+ */
+ 
+或者
+
+ /**
+ * pullToRefresh.call('mockThis:of:../data/data.js') -> 1(setTimeout
+   :mockof:../../../common/utils) => ()
+ */
+```
 
 #### 2，常量路径 :of:
 
