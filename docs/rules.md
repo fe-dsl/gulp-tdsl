@@ -282,7 +282,7 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 7, 触发调用次数判断与函数Mock
+#### 7, 函数调用 :of:、:mockof:、:from:
 
 **7.1、fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
