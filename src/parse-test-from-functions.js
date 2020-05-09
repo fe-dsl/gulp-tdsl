@@ -375,7 +375,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     let importMocks = ''; // jest Mock的列表
     for (let keyPath in relatedMockFn) {
         const mocks = (relatedMockFn && relatedMockFn[keyPath] || []).map((processName) => {
-            return `${processName} as _${processName}`;
+            return `${processName} as mock${processName}`;
         });
 
         if (relatedMockFn[keyPath] && relatedMockFn[keyPath].length) {
@@ -388,7 +388,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     for (let keyPath in registeredFn) {
         const mocks = (registeredMockFn && registeredMockFn[keyPath] || []).map((processName) => {
             if (relatedMockFns.indexOf(processName) > -1) {
-                return `${processName}: _${processName},`;
+                return `${processName}: mock${processName},`;
             } else {
                 return `${processName}: jest.fn(),`;
             }

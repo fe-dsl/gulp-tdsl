@@ -1,5 +1,5 @@
 
-- **TDSL基本语法**
+- **TDSL基本语法** (共九条)
 
 #### 1、断言比较。相等 =>、深度相等 ==>、不相等 !=>、深度不相等 !==>
 
@@ -88,7 +88,10 @@ test("B module", () => {
 });
 
 ```
-&emsp;&emsp;**如果需要换行**，把块注释换行前面的 \* 去掉即可，另外遵循不要在过程内部换行
+
+#### 2，语法换行
+
+&emsp;&emsp;**如果需要换行**，把块注释换行前面的 \* 去掉即可，另外遵循不要在过程内部换行，例如
 
 ```
 /**
@@ -113,7 +116,7 @@ test("B module", () => {
  */
 ```
 
-#### 2，常量路径 :of:
+#### 3，常量路径 :of:
 
 **("data.dataKey1:of:path", "data.dataKey:of:path", ...params) => ('data.dataKey:of: path')**
 
@@ -160,7 +163,7 @@ test("B module", () => {
 
 ```
 
-#### 3, 析构常量路径 [Number]...[key]:of:
+#### 4, 析构参数路径 [Number]...[key]:of:
 
 **("[number]...data.dataKey1:of:path", ...params) => ('data.dataKey:of: path')**
 
@@ -200,7 +203,7 @@ test("B module", () => {
 ```
 
 
-#### 4, 属性判断
+#### 5, 属性判断
 
 **fn(...Params).property => (lengthValue)**
 
@@ -227,7 +230,7 @@ test("B module", () => {
 });
 ```
 
-#### 5，异步判断
+#### 6，异步判断
 
 **fn(...params) -> (module.property) ==> (returnValue)**
 
@@ -273,7 +276,7 @@ test("async getOverviewChart module", async done => {
 })
 ```
 
-#### 6, 二阶异步判断
+#### 7, 二阶异步判断
 
 **moduleName(fn(...params)) -> (module.property) -> (returnValue)**
 
@@ -306,9 +309,9 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 7, 函数调用 :of:、:mockof:、:from:
+#### 8, 函数调用 :of:、:mockof:、:from:
 
-**7.1、fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
+**8.1、fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
 &emsp;&emsp;常常我们会去测试一个事件触发时是否调用了一些数据业务逻辑，这种情况可以使用调用次数的判断。例如，fn调用时调用module1次数为number1，调用module2次数为number1，module1来自path路径的文件，module1和module2均会被自动mock，然后返回断言值为returnValue。中间的调用判断支持多项，并支持自动合并。注意这里 number1('module1:of:path') -> (module) 不能和异步判断混用。如果需要多次判断，请分多条规则书写。
 
@@ -335,7 +338,7 @@ test("initData module", () => {
 });
 ```
 
-**7.2、fn(...params) -> number1('module1:mockof:path') -> ... -> number2('module2') => (returnValue)**，如果需要对引入的方法进行mock，则可使用:mockof:
+**8.2、fn(...params) -> number1('module1:mockof:path') -> ... -> number2('module2') => (returnValue)**，如果需要对引入的方法进行mock，则可使用:mockof:
 
 ```
 /*
@@ -367,7 +370,7 @@ test("initData module", () => {
 });
 ```
 
- **7.3、fn(...params) -> number1('module1:mockof:path:from:path1') -> ... -> number2('module2') => (returnValue)**，此外如果需要对引入的方法进行自定义mock，则可使用:from:，其中path1的路径为自定义mock函数的路径地址，注意这里**path和path1导出module1的名称必须相同**。
+ **8.3、fn(...params) -> number1('module1:mockof:path:from:path1') -> ... -> number2('module2') => (returnValue)**，此外如果需要对引入的方法进行自定义mock，则可使用:from:，其中path1的路径为自定义mock函数的路径地址，注意这里**path和path1导出module1的名称必须相同**。
 
 ```
 /*
@@ -400,7 +403,7 @@ test("initData module", () => {
 });
 ```
 
-#### 8, this绑定call、apply
+#### 9, this绑定call、apply
 
 **fn.call(this, ...params) -> number1('module1:of:path') -> ... -> number2('module2:of:path') => (returnValue)**
 
