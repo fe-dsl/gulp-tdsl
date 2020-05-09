@@ -82,6 +82,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
     let registeredProcess = {}; // 注册过的中间过程记录
     const registeredFn = {};  // 已注册需要mock的方法
     const registeredMockFn = {};  // 已注册所有的方法
+    const relatedMockFn = {};  // 已注册需要手动注册的Mock函数
 
     // 文件名
     const fileName = path.basename(filePath).split('.')[0] || '';
@@ -279,6 +280,25 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                         processPath = processNameArr[1];
                     }
 
+                    const hasMock = processPath.indexOf(':from:');
+                    let relatedmockFnPathArray = processPath.split(':from:');
+
+                    // 自动计算引入模块相对test文件的路径
+                    if (hasMock && relatedmockFnPathArray[1]) {
+                        // 新的需要mock的路径
+                        processPath = relatedmockFnPathArray[0];
+                        // 新的mock来源路径
+                        let relatedMockPath = parseFromSrcAndTestPath(relatedmockFnPathArray[1], filePath, outputFilePath);
+
+                        if (relatedMockFn[relatedMockPath]) {
+                            if (relatedMockFn[relatedMockPath].indexOf(processName) < 0) {
+                                relatedMockFn[relatedMockPath].push(processName);
+                            }
+                        } else {
+                            relatedMockFn[relatedMockPath] = [processName];
+                        }
+                    }
+
                     // 还有函数模块mock路径的情况
                     if (processPath) {
                         // 如果模块名没注册过
@@ -349,13 +369,32 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         }
     }
 
+
+    let relatedMockFns = [];  // 注册手动Mock的processName
+    let relatedMockFnImports = '';  // 手动Mock的import列表
+    let importMocks = ''; // jest Mock的列表
+    for (let keyPath in relatedMockFn) {
+        const mocks = (relatedMockFn && relatedMockFn[keyPath] || []).map((processName) => {
+            return `${processName} as _${processName}`;
+        });
+
+        if (relatedMockFn[keyPath] && relatedMockFn[keyPath].length) {
+            relatedMockFnImports += `import { ${mocks.join(',') } } from '${keyPath}';`;
+        }
+        relatedMockFns = relatedMockFns.concat(relatedMockFn && relatedMockFn[keyPath] || []);
+    }
+
     // 函数mocks的import
     for (let keyPath in registeredFn) {
         const mocks = (registeredMockFn && registeredMockFn[keyPath] || []).map((processName) => {
-            return `${processName}: jest.fn(),`;
+            if (relatedMockFns.indexOf(processName) > -1) {
+                return `${processName}: _${processName},`;
+            } else {
+                return `${processName}: jest.fn(),`;
+            }
         });
 
-        let importMocks = `
+        importMocks += `
             import { ${registeredFn[keyPath].join(',')} } from '${keyPath}';
         `;
 
@@ -369,8 +408,8 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                 });
             `;
         }
-        codeString = importMocks + codeString;
     }
+    codeString = relatedMockFnImports + importMocks + codeString;
 
     // 分析所有的路径数据导入导出import
     for (let pathKey in readedData) {

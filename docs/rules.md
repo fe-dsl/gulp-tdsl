@@ -282,9 +282,9 @@ test("getOverviewChart module", done => {
 })
 ```
 
-#### 7, 触发调用次数判断
+#### 7, 触发调用次数判断与函数Mock
 
-**fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
+**7.1、fn(...params) -> number1('module1:of:path') -> ... -> number2('module2') => (returnValue)**
 
 &emsp;&emsp;常常我们会去测试一个事件触发时是否调用了一些数据业务逻辑，这种情况可以使用调用次数的判断。例如，fn调用时调用module1次数为number1，调用module2次数为number1，module1来自path路径的文件，module1和module2均会被自动mock，然后返回断言值为returnValue。中间的调用判断支持多项，并支持自动合并。注意这里 number1('module1:of:path') -> (module) 不能和异步判断混用。如果需要多次判断，请分多条规则书写。
 
@@ -311,7 +311,7 @@ test("initData module", () => {
 });
 ```
 
-&emsp;&emsp;如果需要对引入的方法进行mock，则可使用: **fn(...params) -> number1('module1:mockof:path') -> ... -> number2('module2') => (returnValue)**
+**7.2、fn(...params) -> number1('module1:mockof:path') -> ... -> number2('module2') => (returnValue)**，如果需要对引入的方法进行mock，则可使用:mockof:
 
 ```
 /*
@@ -332,6 +332,39 @@ import { onChangeChartDate, getAdvertiserListInfo } from '../action';
 jest.mock('../action', () => {
   return {
     onChangeChartDate: jest.fn(),
+    getAdvertiserListInfo: jest.fn(),
+  };
+});
+test("initData module", () => {
+  jest.resetAllMocks();
+  initData();
+  expect(onChangeChartDate).toBeCalledTimes(1);
+  expect(getAdvertiserListInfo).toBeCalledTimes(1);
+});
+```
+
+ **7.3、fn(...params) -> number1('module1:mockof:path:from:path1') -> ... -> number2('module2') => (returnValue)**，此外如果需要对引入的方法进行自定义mock，则可使用:from:，其中path1的路径为自定义mock函数的路径地址，注意这里**path和path1导出module1的名称必须相同**。
+
+```
+/*
+ * initData({}) -> 1(onChangeChartDate:mockof:../action:from:../mock.js) -> 1(getAdvertiserListInfo:mockof:../action) => ()
+ * 执行initData时，执行了1次onChangeChartDate，其中onChangeChartDate的自定义mock函数为../mock.js中的onChangeChartDate；getAdvertiserListInfo和7.2相同
+ */
+export const initData = function (options = {}) {
+    onChangeChartDate(time);
+    getAdvertiserListInfo({page: 1});
+}
+
+```
+
+&emsp;&emsp;这里的模块路径均会被自动重新计算和自动mock，编译后输出：
+
+```
+import { onChangeChartDate as _onChangeChartDate, } from '../mock.js';
+import { onChangeChartDate, getAdvertiserListInfo, } from '../action';
+jest.mock('../action', () => {
+  return {
+    onChangeChartDate: _onChangeChartDate,
     getAdvertiserListInfo: jest.fn(),
   };
 });
