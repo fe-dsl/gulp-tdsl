@@ -331,7 +331,7 @@ export const initData = function (options = {}) {
 ```
 import { onChangeChartDate, getAdvertiserListInfo } from '../action';
 test("initData module", () => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
   initData();
   expect(onChangeChartDate).toBeCalledTimes(1);
   expect(getAdvertiserListInfo).toBeCalledTimes(1);
@@ -363,7 +363,7 @@ jest.mock('../action', () => {
   };
 });
 test("initData module", () => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
   initData();
   expect(onChangeChartDate).toBeCalledTimes(1);
   expect(getAdvertiserListInfo).toBeCalledTimes(1);
@@ -396,7 +396,7 @@ jest.mock('../action', () => {
   };
 });
 test("initData module", () => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
   initData();
   expect(onChangeChartDate).toBeCalledTimes(1);
   expect(getAdvertiserListInfo).toBeCalledTimes(1);
@@ -445,7 +445,7 @@ jest.mock('../action', () => {
   };
 });
 test("initData module", () => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
   initData.call(mockThis, {});
   expect(getMessageList).toBeCalledTimes(1);
   expect(initData.call(mockThis, {})).toBeCalledTimes(1);

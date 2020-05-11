@@ -257,7 +257,7 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
                     moduleNameCall = `await ${moduleNameCall}`;
                 }
                 beforeCode = `
-                    jest.resetAllMocks();
+                    jest.clearAllMocks();
                     ${moduleNameCall};
                 `;
                 afterCode = testItem.output ? `expect((${moduleNameCall})${property}).${assetType}(${testItem.output});\n` : '';
