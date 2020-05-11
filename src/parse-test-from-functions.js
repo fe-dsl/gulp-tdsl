@@ -19,8 +19,6 @@ const {
     splitSignalArrayFromPath,
 } = require('./utils');
 
-const paramsPathSplit = ':of:';
-
 const currentPath = process.cwd();
 
 const packageJsonDir = prasePackJsonDir(currentPath);
@@ -440,7 +438,6 @@ function parseIoTestFunction (combinedExportFunctions, filePath, config = {}) {
         fs.outputFileSync(outputFilePath, codeString);
     }
 }
-
 
 
 /**
